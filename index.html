@@ -1,1008 +1,754 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stankevich Academy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: #050709;
-            min-height: 100vh;
-            color: #e8e8e8;
-        }
+  <meta charset="UTF-8">
+  <title>Кружок</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        .glass {
-            background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
-            backdrop-filter: blur(20px) saturate(150%);
-            -webkit-backdrop-filter: blur(20px) saturate(150%);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.3);
-        }
+  <style>
+    body { 
+      font-family: 'Inter', sans-serif; 
+      overscroll-behavior: none; 
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 
-        .nav-glass {
-            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
-            backdrop-filter: blur(40px) saturate(150%);
-            -webkit-backdrop-filter: blur(40px) saturate(150%);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.4);
-            position: relative;
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 
+              primary: '#0ea5e9',
+              accent: '#047857',
+              dark: '#0f172a',    
+              text: '#334155',    
+              subtext: '#94a3b8' 
+            }
+          },
+          boxShadow: { 
+            glass: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+          }
         }
-
-        .nav-indicator {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            height: calc(100% - 12px);
-            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 8px rgba(0,0,0,0.2);
-            border-radius: 22px;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 0;
-        }
-
-        .nav-item {
-            position: relative;
-            z-index: 1;
-            transition: transform 0.15s ease;
-        }
-        .nav-item:active { transform: scale(0.9); }
-        .nav-item svg {
-            transition: opacity 0.2s ease;
-        }
-
-
-        .page { 
-            opacity: 0; 
-            transform: translateY(8px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
-        }
-        .page.visible { 
-            opacity: 1; 
-            transform: translateY(0);
-        }
-
-        ::-webkit-scrollbar { width: 0; }
-        
-        .chart-container { overflow: visible; }
-    </style>
+      }
+    }
+  </script>
 </head>
 <body>
-    <div id="app" class="flex flex-col items-center min-h-screen"></div>
+  <div id="root"></div>
 
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <div class="nav-glass rounded-full px-1.5 py-1.5 flex">
-            <div class="nav-indicator" id="navIndicator"></div>
-            <button class="nav-item w-12 h-12 flex items-center justify-center" data-tab="history" data-index="0">
-                <svg class="w-6 h-6 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M12 7v5l3 3"/>
-                </svg>
-            </button>
-            <button class="nav-item active w-12 h-12 flex items-center justify-center" data-tab="main" data-index="1">
-                <svg class="w-6 h-6 opacity-90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path d="M3 12l9-9 9 9"/>
-                    <path d="M5 10v10a1 1 0 001 1h12a1 1 0 001-1V10"/>
-                </svg>
-            </button>
-            <button class="nav-item w-12 h-12 flex items-center justify-center" data-tab="stats" data-index="2">
-                <svg class="w-6 h-6 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path d="M4 20h16"/>
-                    <path d="M4 20V10"/>
-                    <path d="M9 20V6"/>
-                    <path d="M14 20v-8"/>
-                    <path d="M19 20V4"/>
-                </svg>
-            </button>
+  <script type="text/babel" data-presets="react">
+    const { useState, useMemo, useRef, useEffect } = React;
+    const { LineChart, Line, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } = Recharts;
+
+    const IconBase = ({ size = 24, color = "currentColor", strokeWidth = 2, children, ...props }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>{children}</svg>
+    );
+
+    const BookOpen = (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconBase>;
+    const HomeIcon = (props) => <IconBase {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></IconBase>;
+    const BarChart2 = (props) => <IconBase {...props}><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></IconBase>;
+    const ChevronDown = (props) => <IconBase {...props}><path d="m6 9 6 6 6-6"/></IconBase>;
+    const ChevronLeft = (props) => <IconBase {...props}><path d="m15 18-6-6 6-6"/></IconBase>;
+    const ChevronRight = (props) => <IconBase {...props}><path d="m9 18 6-6-6-6"/></IconBase>;
+    const Moon = (props) => <IconBase {...props}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconBase>;
+    const Sun = (props) => <IconBase {...props}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconBase>;
+    const X = (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>;
+    const ArrowUp = (props) => <IconBase {...props}><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></IconBase>;
+    const ArrowDown = (props) => <IconBase {...props}><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></IconBase>;
+    const Minus = (props) => <IconBase {...props}><path d="M5 12h14"/></IconBase>;
+
+    const TaskType = { HOMEWORK: 'HOMEWORK', MOCK: 'MOCK', ESSAY: 'ESSAY', PROJECT: 'PROJECT' };
+    const Page = { HISTORY: 'HISTORY', HOME: 'HOME', STATS: 'STATS' };
+    const TASK_TYPE_ORDER = [TaskType.HOMEWORK, TaskType.MOCK, TaskType.ESSAY, TaskType.PROJECT];
+    
+    const TASK_TYPE_LABELS = {
+      [TaskType.ESSAY]: 'Эссе',
+      [TaskType.PROJECT]: 'Проект',
+      [TaskType.MOCK]: 'Пробник',
+      [TaskType.HOMEWORK]: 'Домашка'
+    };
+
+    const TASK_TYPE_FULL_LABELS = {
+      [TaskType.ESSAY]: 'Эссе',
+      [TaskType.PROJECT]: 'Проект',
+      [TaskType.MOCK]: 'Пробник',
+      [TaskType.HOMEWORK]: 'Домашнее задание'
+    };
+
+    const TASK_TYPE_COLORS = {
+      [TaskType.HOMEWORK]: '#10b981',
+      [TaskType.MOCK]: '#0ea5e9',
+      [TaskType.ESSAY]: '#c2410c',  // Терракотовый - теплый академичный цвет для письменных работ
+      [TaskType.PROJECT]: '#6366f1', // Индиго - творческий но спокойный цвет для проектов
+    };
+
+    const now = new Date();
+    const daysAgo = (n) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - n);
+      return d.toISOString();
+    };
+
+    const CURRENT_STUDENT = {
+      name: 'Алексей',
+      email: 'alexey.student@example.com',
+      courses: [
+        { id: 'c1', name: 'История России: XIX век' },
+        { id: 'c2', name: 'Всемирная история: XX век' }
+      ]
+    };
+
+    const MOCK_TASKS = [
+      { id: 't1', courseId: 'c1', name: 'Реформы Александра II', type: TaskType.ESSAY, score: 46, maxScore: 50, date: daysAgo(3) },
+      { id: 't2', courseId: 'c1', name: 'Пробник №1', type: TaskType.MOCK, score: 72, maxScore: 100, date: daysAgo(15) },
+      { id: 't3', courseId: 'c1', name: 'Пробник №2', type: TaskType.MOCK, score: 78, maxScore: 100, date: daysAgo(10) },
+      { id: 't4', courseId: 'c1', name: 'Пробник №3', type: TaskType.MOCK, score: 70, maxScore: 100, date: daysAgo(2) },
+      { id: 't5', courseId: 'c1', name: 'Анализ источника: Манифест 1861', type: TaskType.HOMEWORK, score: 9, maxScore: 10, date: daysAgo(1) },
+      { id: 't6', courseId: 'c1', name: 'Работа с картой', type: TaskType.HOMEWORK, score: 8, maxScore: 10, date: daysAgo(5) },
+      { id: 't7', courseId: 'c1', name: 'Хронология', type: TaskType.HOMEWORK, score: 7, maxScore: 10, date: daysAgo(9) },
+      { id: 't8', courseId: 'c1', name: 'Термины', type: TaskType.HOMEWORK, score: 12, maxScore: 15, date: daysAgo(13) },
+      { id: 't9', courseId: 'c1', name: 'Культура XIX века', type: TaskType.HOMEWORK, score: 18, maxScore: 20, date: daysAgo(17) },
+      { id: 't10', courseId: 'c1', name: 'Проект: Общественные движения', type: TaskType.PROJECT, score: 47, maxScore: 50, date: daysAgo(20) },
+      { id: 't11', courseId: 'c1', name: 'Причины революции 1917', type: TaskType.ESSAY, score: 42, maxScore: 50, date: daysAgo(12) },
+      { id: 't12', courseId: 'c1', name: 'Столыпинские реформы', type: TaskType.ESSAY, score: 38, maxScore: 50, date: daysAgo(22) },
+      { id: 't13', courseId: 'c2', name: 'Первая мировая война', type: TaskType.MOCK, score: 85, maxScore: 100, date: daysAgo(4) }
+    ];
+
+    const GlassCard = ({ children, className = '', onClick, interactive = false }) => (
+      <div 
+        onClick={onClick}
+        className={`
+          bg-white/65 dark:bg-slate-800/70 backdrop-blur-xl 
+          border border-white/50 dark:border-slate-700/50 
+          shadow-glass dark:shadow-none rounded-[2rem] 
+          ${interactive ? 'active:scale-[0.98] transition-transform duration-200 cursor-pointer' : ''}
+          ${className}
+        `}
+      >
+        {children}
+      </div>
+    );
+
+    const BottomNav = ({ activePage, setPage }) => {
+      const navRef = useRef(null);
+      const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+      const pages = [Page.HISTORY, Page.HOME, Page.STATS];
+
+      useEffect(() => {
+        if (navRef.current) {
+          const buttons = navRef.current.querySelectorAll('button');
+          const activeIdx = pages.indexOf(activePage);
+          const btn = buttons[activeIdx];
+          if (btn) {
+            setIndicatorStyle({ left: btn.offsetLeft, width: btn.offsetWidth });
+          }
+        }
+      }, [activePage]);
+
+      return (
+        <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+          <div 
+            ref={navRef}
+            className="pointer-events-auto h-20 px-4 rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-3xl border border-white/40 dark:border-slate-700/40 shadow-glass flex items-center relative"
+          >
+            <div 
+              className="absolute h-14 bg-white/80 dark:bg-slate-700/80 rounded-full shadow-sm transition-all duration-300 ease-out"
+              style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+            />
+            
+            {pages.map((page) => (
+              <button
+                key={page}
+                onClick={() => setPage(page)}
+                className={`relative z-10 flex items-center justify-center w-16 h-14 rounded-full transition-colors duration-300
+                  ${activePage === page ? 'text-brand-dark dark:text-white' : 'text-gray-400 dark:text-slate-500'}`}
+              >
+                {page === Page.HISTORY && <BookOpen size={24} />}
+                {page === Page.HOME && <HomeIcon size={24} />}
+                {page === Page.STATS && <BarChart2 size={24} />}
+              </button>
+            ))}
+          </div>
         </div>
-    </nav>
+      );
+    };
 
-    <script>
-        const data = {
-            student: { name: 'Роман Григорьев', email: 'roman.grigoriev@mail.ru' },
-            courses: [
-                { id: 1, name: 'История России' },
-                { id: 2, name: 'Обществознание' }
-            ],
-            grades: [
-                // История России - Эссе (5 шт)
-                { id: 1, name: 'Эссе: Реформы Александра II', type: 'essay', courseId: 1, score: 46, max: 50, comment: 'Отличная работа!', date: '3 фев', timestamp: 1770076800 },
-                { id: 2, name: 'Эссе: Причины революции 1917', type: 'essay', courseId: 1, score: 42, max: 50, comment: 'Хорошо, добавьте фактов.', date: '27 янв', timestamp: 1769472000 },
-                { id: 3, name: 'Эссе: Столыпинские реформы', type: 'essay', courseId: 1, score: 38, max: 50, comment: 'Работайте над структурой.', date: '20 янв', timestamp: 1768867200 },
-                { id: 23, name: 'Эссе: Крестьянский вопрос', type: 'essay', courseId: 1, score: 40, max: 50, comment: 'Нужно больше аргументов.', date: '13 янв', timestamp: 1768262400 },
-                { id: 24, name: 'Эссе: Внешняя политика России', type: 'essay', courseId: 1, score: 44, max: 50, comment: 'Хорошая работа!', date: '6 янв', timestamp: 1767657600 },
-                
-                // Проекты (3 шт) - 0-50, но без фиксированного максимума (может быть разный)
-                { id: 30, name: 'Проект: Первая мировая война', type: 'project', courseId: 1, score: 47, max: null, comment: 'Отлично!', date: '31 янв', timestamp: 1769817600 },
-                { id: 31, name: 'Проект: Индустриализация СССР', type: 'project', courseId: 1, score: 43, max: null, comment: 'Неплохо, но можно глубже.', date: '21 янв', timestamp: 1768953600 },
-                { id: 32, name: 'Проект: НЭП', type: 'project', courseId: 1, score: 45, max: null, comment: 'Хороший анализ!', date: '13 янв', timestamp: 1768262400 },
-                
-                // Пробники (3 шт)
-                { id: 4, name: 'Пробник №1', type: 'test', courseId: 1, score: 78, max: 100, comment: 'Хороший результат, повторите даты.', date: '15 янв', timestamp: 1768435200 },
-                { id: 5, name: 'Пробник №2', type: 'test', courseId: 1, score: 72, max: 100, comment: null, date: '25 янв', timestamp: 1769299200 },
-                { id: 6, name: 'Пробник №3', type: 'test', courseId: 1, score: 85, max: 100, comment: 'Отличный прогресс!', date: '3 фев', timestamp: 1770076800 },
-                
-                // ДЗ (10 шт) - переменный максимум
-                { id: 9, name: 'ДЗ: Анализ источника', type: 'practice', courseId: 1, score: 9, max: 10, comment: 'Отлично!', date: '4 фев', timestamp: 1770163200 },
-                { id: 10, name: 'ДЗ: Работа с картой', type: 'practice', courseId: 1, score: 8, max: 10, comment: null, date: '1 фев', timestamp: 1769904000 },
-                { id: 11, name: 'ДЗ: Хронология событий', type: 'practice', courseId: 1, score: 12, max: 15, comment: 'Супер!', date: '30 янв', timestamp: 1769731200 },
-                { id: 12, name: 'ДЗ: Термины и понятия', type: 'practice', courseId: 1, score: 7, max: 10, comment: 'Повторите определения.', date: '28 янв', timestamp: 1769558400 },
-                { id: 13, name: 'ДЗ: Культура XIX века', type: 'practice', courseId: 1, score: 6, max: 10, comment: 'Нужно доработать.', date: '25 янв', timestamp: 1769299200 },
-                { id: 14, name: 'ДЗ: Реформы Петра I', type: 'practice', courseId: 1, score: 9, max: 10, comment: null, date: '22 янв', timestamp: 1769040000 },
-                { id: 15, name: 'ДЗ: Смутное время', type: 'practice', courseId: 1, score: 8, max: 10, comment: 'Хорошо!', date: '18 янв', timestamp: 1768694400 },
-                { id: 16, name: 'ДЗ: Монгольское иго', type: 'practice', courseId: 1, score: 5, max: 10, comment: 'Перечитайте материал.', date: '15 янв', timestamp: 1768435200 },
-                { id: 17, name: 'ДЗ: Крещение Руси', type: 'practice', courseId: 1, score: 20, max: 25, comment: 'Отлично!', date: '12 янв', timestamp: 1768176000 },
-                { id: 18, name: 'ДЗ: Первые князья', type: 'practice', courseId: 1, score: 7, max: 10, comment: null, date: '8 янв', timestamp: 1767830400 },
-                
-                // На проверке
-                { id: 19, name: 'Эссе: НЭП и его итоги', type: 'essay', courseId: 1, score: null, max: 50, comment: null, date: null, timestamp: null },
-                
-                // Обществознание
-                { id: 20, name: 'Эссе: Социальные институты', type: 'essay', courseId: 2, score: 44, max: 50, comment: 'Хорошая аргументация.', date: '1 фев', timestamp: 1769904000 },
-                { id: 21, name: 'Пробник: Общество', type: 'test', courseId: 2, score: 85, max: 100, comment: null, date: '22 янв', timestamp: 1769040000 },
-                { id: 22, name: 'ДЗ: Право', type: 'practice', courseId: 2, score: 9, max: 10, comment: null, date: '14 янв', timestamp: 1768348800 },
-            ]
-        };
+    const CourseSelector = ({ courses, currentCourse, onChange }) => {
+      const [isOpen, setIsOpen] = useState(false);
 
-        let currentTab = 'main';
-        let currentCourse = 1;
-        const app = document.getElementById('app');
+      return (
+        <div className="relative z-40">
+          <GlassCard interactive onClick={() => setIsOpen(!isOpen)} className="p-5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Курс</span>
+              <h2 className="text-xl font-semibold text-brand-dark dark:text-white leading-tight pr-4">{currentCourse.name}</h2>
+            </div>
+            <ChevronDown className={`text-gray-400 dark:text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </GlassCard>
 
-        const getCourseGrades = () => data.grades.filter(g => g.courseId === currentCourse && g.score !== null);
-        const byType = t => getCourseGrades().filter(g => g.type === t);
-        
-        const getAvg = (type) => {
-            const items = byType(type);
-            if (!items.length) return 0;
-            const sum = items.reduce((a, g) => a + g.score, 0);
-            return Math.round(sum / items.length);
-        };
-        
-        const getAvgPercent = (type) => {
-            const items = byType(type);
-            if (!items.length) return 0;
-            if (type === 'essay') return Math.round((getAvg(type) / 50) * 100);
-            if (type === 'project') return Math.round((getAvg(type) / 50) * 100);
-            if (type === 'test') return Math.round((getAvg(type) / 100) * 100);
-            // ДЗ - переменный max
-            const avg = items.reduce((a, g) => a + (g.score / g.max) * 100, 0) / items.length;
-            return Math.round(avg);
-        };
-
-        function render() {
-            const content = currentTab === 'main' ? renderMain() : currentTab === 'stats' ? renderStats() : renderHistory();
-            
-            const existing = app.querySelector('.page');
-            if (existing) {
-                existing.classList.remove('visible');
-                setTimeout(() => {
-                    app.innerHTML = content;
-                    requestAnimationFrame(() => app.querySelector('.page')?.classList.add('visible'));
-                }, 200);
-            } else {
-                app.innerHTML = content;
-                requestAnimationFrame(() => app.querySelector('.page')?.classList.add('visible'));
-            }
-        }
-
-        function renderMain() {
-            const accepted = getCourseGrades();
-            
-            // Средний балл (нормализованный к 100)
-            const calcAvgScore = () => {
-                if (!accepted.length) return 0;
-                let total = 0;
-                accepted.forEach(g => {
-                    if (g.type === 'project') total += (g.score / 50) * 100;
-                    else if (g.max) total += (g.score / g.max) * 100;
-                });
-                return Math.round(total / accepted.length);
-            };
-            const avgScore = calcAvgScore();
-
-            return `
-                <div class="page w-full max-w-md px-6 py-10 pb-32">
-                    <div class="mb-8">
-                        <h1 class="text-2xl font-semibold mb-1">${data.student.name}</h1>
-                        <p class="text-sm text-white/35">${data.student.email}</p>
-                    </div>
-
-                    <div class="relative mb-8">
-                        <button class="glass rounded-2xl py-3 px-5 w-full flex justify-between items-center" onclick="toggleDropdown()">
-                            <span class="text-sm">${data.courses.find(c => c.id === currentCourse).name}</span>
-                            <svg class="w-4 h-4 text-white/40 transition-transform" id="dropdownArrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-                            </svg>
-                        </button>
-                        <div id="courseDropdown" class="absolute top-full left-0 right-0 mt-2 glass rounded-2xl overflow-hidden z-10 opacity-0 pointer-events-none translate-y-[-8px] transition-all duration-200">
-                            ${data.courses.map(c => `
-                                <button class="w-full py-3 px-5 text-left text-sm hover:bg-white/5 transition-colors ${c.id === currentCourse ? 'text-[#a8c7b5]' : 'text-white/60'}" onclick="selectCourse(${c.id})">
-                                    ${c.name}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 mb-5">
-                        <div class="flex justify-between items-end mb-5">
-                            <div>
-                                <div class="text-white/40 text-xs mb-1">Средний балл</div>
-                                <div class="text-4xl font-semibold">${avgScore}<span class="text-lg text-white/25"> из 100</span></div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-white/40 text-xs mb-1">Работ сдано</div>
-                                <div class="text-2xl font-medium text-[#a8c7b5]">${accepted.length}</div>
-                            </div>
-                        </div>
-                        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full bg-gradient-to-r from-[#7c9a92] to-[#a8c7b5]" style="width: ${avgScore}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <div class="glass rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-xs text-white/40">Эссе</span>
-                                <span class="text-lg font-semibold text-[#8fa7b3]">${getAvg('essay')}<span class="text-xs text-white/30">/50</span></span>
-                            </div>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-                                <div class="h-full rounded-full bg-[#8fa7b3]" style="width: ${getAvgPercent('essay')}%"></div>
-                            </div>
-                            <div class="text-[10px] text-white/25">${byType('essay').length} написано</div>
-                        </div>
-                        <div class="glass rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-xs text-white/40">Проекты</span>
-                                <span class="text-lg font-semibold text-[#b3a08f]">${getAvg('project')}<span class="text-xs text-white/30">/50</span></span>
-                            </div>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-                                <div class="h-full rounded-full bg-[#b3a08f]" style="width: ${getAvgPercent('project')}%"></div>
-                            </div>
-                            <div class="text-[10px] text-white/25">${byType('project').length} сдано</div>
-                        </div>
-                        <div class="glass rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-xs text-white/40">Пробники</span>
-                                <span class="text-lg font-semibold text-[#a093b3]">${getAvg('test')}<span class="text-xs text-white/30">/100</span></span>
-                            </div>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-                                <div class="h-full rounded-full bg-[#a093b3]" style="width: ${getAvgPercent('test')}%"></div>
-                            </div>
-                            <div class="text-[10px] text-white/25">${byType('test').length} пройдено</div>
-                        </div>
-                        <div class="glass rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-xs text-white/40">Домашка</span>
-                                <span class="text-lg font-semibold text-[#8fb3a0]">${getAvg('practice')}<span class="text-xs text-white/30"> балл</span></span>
-                            </div>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-                                <div class="h-full rounded-full bg-[#8fb3a0]" style="width: ${(getAvg('practice') / 15) * 100}%"></div>
-                            </div>
-                            <div class="text-[10px] text-white/25">${byType('practice').length} выполнено</div>
-                        </div>
-                    </div>
-
-                    <div class="glass rounded-2xl p-5">
-                        <div class="text-sm text-white/50 mb-4">Активность</div>
-                        <div id="calendar"></div>
-                    </div>
+          {isOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-2xl rounded-[1.5rem] shadow-glass border border-white/60 dark:border-slate-700/60">
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  onClick={() => { onChange(course); setIsOpen(false); }}
+                  className={`p-4 rounded-xl cursor-pointer transition-colors mb-1 last:mb-0
+                    ${currentCourse.id === course.id ? 'bg-brand-primary/10 text-brand-primary' : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-brand-text dark:text-slate-300'}`}
+                >
+                  <div className="font-medium">{course.name}</div>
                 </div>
-            `;
-        }
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
 
-        function renderStats() {
-            const essays = byType('essay'), projects = byType('project'), tests = byType('test'), practices = byType('practice');
-            const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b.score,0)/arr.length) : 0;
-            const course = data.courses.find(c => c.id === currentCourse);
+    const TaskModal = ({ task, onClose, courseName }) => {
+      if (!task) return null;
 
-            return `
-                <div class="page w-full max-w-md px-6 py-10 pb-32">
-                    <div class="flex justify-between items-center mb-8">
-                        <h1 class="text-2xl font-semibold">Статистика</h1>
-                        <span class="text-sm text-white/30">${course.name}</span>
-                    </div>
+      return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+          
+          <div className="relative w-full max-w-sm bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-white/80 dark:border-slate-700 rounded-[2rem] shadow-2xl p-8">
+            <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-slate-700 rounded-full text-gray-400 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600">
+              <X size={20} />
+            </button>
 
-                    <div class="space-y-5">
-                        <!-- ДЗ - первым, линейный график -->
-                        <div class="glass rounded-2xl p-5">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm text-white/40">Домашние задания</span>
-                                <span class="text-lg font-medium text-[#8fb3a0]">${(practices.reduce((a,b)=>a+b.score,0)/practices.length || 0).toFixed(1)}</span>
-                            </div>
-                            <div class="text-[10px] text-white/20 mb-3">${practices.length} выполнено</div>
-                            <div class="h-[120px]"><canvas id="practiceChart"></canvas></div>
-                        </div>
+            <div className="mt-2">
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2 block">
+                {TASK_TYPE_FULL_LABELS[task.type]}
+              </span>
+              
+              <h3 className="text-2xl font-semibold text-brand-dark dark:text-white mb-2 leading-tight">{task.name}</h3>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mb-6 border-b border-gray-100 dark:border-slate-700 pb-4">{courseName}</p>
 
-                        <!-- Пробники -->
-                        <div class="glass rounded-2xl p-5">
-                            <div class="text-sm text-white/40 mb-5">Пробники</div>
-                            <div class="flex justify-between relative" style="height: 120px;">
-                                <div class="absolute left-0 right-0 h-px bg-white/10" style="top: 50%;"></div>
-                                ${sortByDate(tests).map((t, i, arr) => {
-                                    const diff = i > 0 ? t.score - arr[i-1].score : null;
-                                    const isPositive = diff !== null && diff > 0;
-                                    const isNegative = diff !== null && diff < 0;
-                                    return `
-                                    <div class="relative flex-1 flex flex-col items-center cursor-pointer" onclick="showDetail(${t.id})">
-                                        <div class="text-2xl font-semibold mb-auto pt-2">${t.score}</div>
-                                        <div class="w-3 h-3 rounded-full bg-[#a093b3] absolute z-10" style="top: 50%; transform: translateY(-50%);"></div>
-                                        ${i < arr.length - 1 ? `
-                                            <div class="absolute h-px bg-[#a093b3]/40" style="top: 50%; left: 50%; width: 100%;"></div>
-                                        ` : ''}
-                                        ${diff !== null ? `
-                                            <div class="absolute flex items-center gap-0.5 px-1.5 py-0.5 rounded-full ${isPositive ? 'bg-[#8fb3a0]/20 text-[#8fb3a0]' : isNegative ? 'bg-[#c77a7a]/20 text-[#c77a7a]' : 'bg-white/10 text-white/40'}" style="top: calc(50% + 10px);">
-                                                <svg class="w-2 h-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                                    ${isPositive ? '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>' : isNegative ? '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>' : '<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/>'}
-                                                </svg>
-                                                <span class="text-[9px] font-medium">${Math.abs(diff)}</span>
-                                            </div>
-                                        ` : ''}
-                                        <div class="text-[10px] text-white/30 ${diff !== null ? 'mt-6' : 'mt-auto'} pb-1">${t.date}</div>
-                                    </div>
-                                `}).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Эссе и Проекты - компактные карточки -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="glass rounded-2xl p-4">
-                                <div class="text-xs text-white/40 mb-1">Эссе</div>
-                                <div class="text-2xl font-semibold text-[#8fa7b3] mb-1">${avg(essays)}<span class="text-sm text-white/25">/50</span></div>
-                                <div class="text-[10px] text-white/20 mb-3">${essays.length} написано</div>
-                                <div class="h-[120px]"><canvas id="essayChart"></canvas></div>
-                            </div>
-                            <div class="glass rounded-2xl p-4">
-                                <div class="text-xs text-white/40 mb-1">Проекты</div>
-                                <div class="text-2xl font-semibold text-[#b3a08f] mb-1">${avg(projects)}<span class="text-sm text-white/25">/50</span></div>
-                                <div class="text-[10px] text-white/20 mb-3">${projects.length} сдано</div>
-                                <div class="h-[120px]"><canvas id="projectChart"></canvas></div>
-                            </div>
-                        </div>
-                    </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <div className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1">Оценка</div>
+                  <div className="flex items-baseline">
+                    <span className="text-4xl font-semibold text-brand-dark dark:text-white">{task.score}</span>
+                    <span className="text-lg text-gray-300 dark:text-slate-600 ml-1">/{task.maxScore}</span>
+                  </div>
                 </div>
-            `;
+                <div className="text-right">
+                  <div className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1">Дата</div>
+                  <div className="text-lg font-semibold text-brand-dark dark:text-white">
+                    {new Date(task.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const Home = ({ student, currentCourse, tasks, setCourse, isDarkMode, toggleDarkMode }) => {
+      const [selectedTask, setSelectedTask] = useState(null);
+      const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+      const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+      
+      const validTasks = tasks.filter(t => t.courseId === currentCourse.id);
+      
+      const averagePercent = useMemo(() => {
+        if (validTasks.length === 0) return 0;
+        return Math.round(validTasks.reduce((acc, t) => acc + (t.score / t.maxScore), 0) / validTasks.length * 100);
+      }, [validTasks]);
+
+      const trendData = useMemo(() => {
+        const sorted = [...validTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const recent = sorted.slice(-7);
+        return recent.map((t, i) => ({ idx: i, percent: Math.round((t.score / t.maxScore) * 100) }));
+      }, [validTasks]);
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const currentDayNum = today.getDate();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
+      
+      const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+      const startDay = (() => { let d = new Date(calendarYear, calendarMonth, 1).getDay(); return d === 0 ? 6 : d - 1; })();
+      
+      const calendarDays = Array.from({ length: 42 }, (_, i) => {
+        const dayNum = i - startDay + 1;
+        return (dayNum > 0 && dayNum <= daysInMonth) ? dayNum : null;
+      });
+
+      const getTasksForDay = (day) => validTasks.filter(t => {
+        const d = new Date(t.date);
+        return d.getDate() === day && d.getMonth() === calendarMonth && d.getFullYear() === calendarYear;
+      });
+
+      const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+      const prevMonth = () => {
+        if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); }
+        else { setCalendarMonth(calendarMonth - 1); }
+      };
+
+      const nextMonth = () => {
+        if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); }
+        else { setCalendarMonth(calendarMonth + 1); }
+      };
+
+      const isCurrentMonth = calendarMonth === currentMonth && calendarYear === currentYear;
+
+      return (
+        <div className="space-y-6 pb-24">
+          
+          <div className="flex justify-between items-start px-1">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-white/80 dark:bg-slate-700/80 border-2 border-brand-primary/40 dark:border-brand-primary/50 flex items-center justify-center shadow-sm">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 8 L10 20 M10 14 L18 8 M10 14 L18 20" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-white" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1">Студент</h3>
+                <h1 className="text-3xl font-semibold text-brand-dark dark:text-white">{student.name}</h1>
+              </div>
+            </div>
+            <button 
+              onClick={toggleDarkMode}
+              className="p-3 bg-white/50 dark:bg-slate-700/50 backdrop-blur-md rounded-full border border-white/50 dark:border-slate-600 text-brand-dark dark:text-white hover:bg-white/70 dark:hover:bg-slate-700 transition-colors"
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
+
+          <CourseSelector courses={student.courses} currentCourse={currentCourse} onChange={setCourse} />
+
+          <GlassCard className="p-6">
+            <div className="flex items-center space-x-2 text-emerald-500 mb-6">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span className="text-xs font-semibold tracking-widest uppercase">Активность</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 items-end">
+              <div className="text-center">
+                <span className="text-5xl font-bold text-gray-900 dark:text-white block leading-none mb-1">{validTasks.length}</span>
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider block">Работы</span>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="w-full h-14 mb-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <Line type="monotone" dataKey="percent" stroke="#10b981" strokeWidth={2.5} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Тренд</span>
+              </div>
+
+              <div className="text-center">
+                <span className="text-5xl font-bold text-gray-900 dark:text-white block leading-none mb-1">{averagePercent}%</span>
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider block">Средний</span>
+              </div>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={prevMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                <ChevronLeft size={20} className="text-gray-400 dark:text-slate-500" />
+              </button>
+              <span className="font-semibold text-lg text-brand-dark dark:text-white">
+                {monthNames[calendarMonth]} {calendarYear !== currentYear && calendarYear}
+              </span>
+              <button onClick={nextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                <ChevronRight size={20} className="text-gray-400 dark:text-slate-500" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 text-center mb-3">
+              {['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'].map(d => (
+                <div key={d} className="text-[10px] font-semibold text-gray-300 dark:text-slate-600 py-1">{d}</div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-y-2 gap-x-1">
+              {calendarDays.map((day, idx) => {
+                if (!day) return <div key={idx} />;
+                const hasTasks = getTasksForDay(day).length > 0;
+                const isToday = isCurrentMonth && day === currentDayNum;
+                const isPast = (calendarYear < currentYear) || (calendarYear === currentYear && calendarMonth < currentMonth) || (isCurrentMonth && day < currentDayNum);
+                const isFuture = !isPast && !isToday;
+
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => hasTasks && setSelectedTask(getTasksForDay(day)[0])}
+                    className={`
+                      relative h-9 w-9 mx-auto flex items-center justify-center rounded-full text-sm font-medium transition-all duration-200
+                      ${isToday ? 'bg-brand-dark dark:bg-brand-primary text-white shadow-lg scale-110 z-10' : ''}
+                      ${hasTasks && !isToday ? 'bg-white dark:bg-slate-700 text-brand-dark dark:text-white border-2 border-brand-primary cursor-pointer hover:scale-110' : ''}
+                      ${!hasTasks && isPast ? 'text-gray-400 dark:text-slate-500' : ''}
+                      ${!hasTasks && isFuture ? 'text-gray-300 dark:text-slate-600' : ''}
+                    `}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+
+          {selectedTask && <TaskModal task={selectedTask} courseName={currentCourse.name} onClose={() => setSelectedTask(null)} />}
+        </div>
+      );
+    };
+
+    const Stats = ({ currentCourse, tasks }) => {
+      const [activeTab, setActiveTab] = useState(TaskType.HOMEWORK);
+      const [selectedTask, setSelectedTask] = useState(null);
+
+      const filteredTasks = tasks
+        .filter(t => t.courseId === currentCourse.id && t.type === activeTab)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const average = filteredTasks.length > 0 
+        ? Math.round(filteredTasks.reduce((acc, t) => acc + t.score, 0) / filteredTasks.length)
+        : 0;
+
+      const chartData = filteredTasks.map((t, i) => ({
+        name: `${i + 1}`,
+        rawDate: t.date,
+        score: t.score,
+        fullTask: t
+      }));
+
+      const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+          return (
+            <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-3 rounded-xl shadow-glass border border-white dark:border-slate-700 text-xs">
+              <p className="font-semibold mb-1 text-brand-dark dark:text-white">{payload[0].payload.fullTask.name}</p>
+              <p className="text-brand-primary">Балл: {payload[0].value} / {payload[0].payload.fullTask.maxScore}</p>
+              <p className="text-gray-400 dark:text-slate-500 mt-1">{new Date(payload[0].payload.rawDate).toLocaleDateString('ru-RU')}</p>
+            </div>
+          );
         }
+        return null;
+      };
 
-        function renderHistory() {
-            const courseGrades = data.grades.filter(g => g.courseId === currentCourse);
-            const course = data.courses.find(c => c.id === currentCourse);
+      const activeColor = TASK_TYPE_COLORS[activeTab];
 
-            return `
-                <div class="page w-full max-w-md px-6 py-10 pb-32">
-                    <div class="flex justify-between items-center mb-8">
-                        <h1 class="text-2xl font-semibold">История</h1>
-                        <span class="text-sm text-white/30">${course.name}</span>
+      return (
+        <div className="pb-24 h-full flex flex-col">
+          
+          <div className="mb-6 px-1">
+            <h1 className="text-3xl font-semibold text-brand-dark dark:text-white mb-1">Статистика</h1>
+            <p className="text-brand-subtext dark:text-slate-500 text-sm">Анализ по категориям</p>
+          </div>
+
+          <div className="flex space-x-2 overflow-x-auto no-scrollbar mb-6 py-2 px-1">
+            {TASK_TYPE_ORDER.map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveTab(type)}
+                style={activeTab === type ? { backgroundColor: TASK_TYPE_COLORS[type] } : {}}
+                className={`
+                  whitespace-nowrap px-5 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 flex-shrink-0
+                  ${activeTab === type 
+                    ? 'text-white shadow-md transform scale-105' 
+                    : 'bg-white/80 dark:bg-slate-800/80 text-gray-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'}
+                `}
+              >
+                {TASK_TYPE_LABELS[type].toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          <GlassCard className="flex-grow p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Категория</p>
+                <h2 className="text-xl font-semibold text-brand-dark dark:text-white">{TASK_TYPE_LABELS[activeTab]}</h2>
+              </div>
+              
+              {filteredTasks.length > 0 && (
+                <div className="text-right">
+                  <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Средний</p>
+                  <p className="text-2xl font-semibold text-brand-dark dark:text-white">{average}</p>
+                </div>
+              )}
+            </div>
+
+            {filteredTasks.length === 0 ? (
+              <div className="flex-grow flex flex-col items-center justify-center text-center opacity-50">
+                <p className="font-semibold text-brand-subtext dark:text-slate-400">Недостаточно данных</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Нужно минимум 1 работа</p>
+              </div>
+            ) : (
+              <>
+                {activeTab === TaskType.MOCK ? (
+                  <>
+                    <div className="h-32 w-full mb-4 relative">
+                      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 dark:bg-slate-700 transform -translate-y-1/2 z-0"></div>
+                      {filteredTasks.map((task, idx) => {
+                        const xPos = filteredTasks.length > 1 ? (idx / (filteredTasks.length - 1)) * 100 : 50;
+                        return (
+                          <div 
+                            key={task.id}
+                            className="absolute flex flex-col items-center"
+                            style={{ left: `${xPos}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                          >
+                            <div className="text-xs font-semibold text-brand-dark dark:text-white mb-2">
+                              {task.score}
+                            </div>
+                            <div className="w-3 h-3 rounded-full bg-brand-primary border-2 border-white dark:border-slate-800 shadow-sm"></div>
+                            <div className="text-[10px] font-medium text-gray-400 dark:text-slate-500 mt-2">
+                              {new Date(task.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                     
-                    <div class="space-y-3">
-                        ${courseGrades.map(w => `
-                            <div class="glass rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="showDetail(${w.id})">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1 min-w-0 pr-4">
-                                        <div class="font-medium text-[15px] truncate">${w.name}</div>
-                                        <div class="text-xs text-white/30 mt-1">${w.date || 'На проверке'}</div>
-                                    </div>
-                                    <div class="text-lg font-medium ${w.score ? 'text-[#a8c7b5]' : 'text-white/20'}">${w.score ?? '—'}${w.type === 'project' ? `<span class="text-sm text-white/25">/50</span>` : w.max ? `<span class="text-sm text-white/25">/${w.max}</span>` : ''}</div>
+                    <div className="flex-grow overflow-y-auto no-scrollbar">
+                      <h3 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase mb-2">Результаты</h3>
+                      <div className="space-y-0">
+                        {[...filteredTasks].reverse().map((task, idx, arr) => {
+                          const origIdx = filteredTasks.length - 1 - idx;
+                          const prev = origIdx > 0 ? filteredTasks[origIdx - 1] : null;
+                          const diff = prev ? task.score - prev.score : null;
+
+                          return (
+                            <div 
+                              key={task.id}
+                              onClick={() => setSelectedTask(task)}
+                              className={`flex items-center justify-between p-3 bg-white/50 dark:bg-slate-700/30 cursor-pointer hover:bg-white/80 dark:hover:bg-slate-700/50 transition-colors ${
+                                idx < arr.length - 1 ? 'border-b border-gray-200/50 dark:border-slate-600/30' : ''
+                              } ${idx === 0 ? 'rounded-t-xl' : ''} ${idx === arr.length - 1 ? 'rounded-b-xl' : ''}`}
+                            >
+                              <div className="flex flex-col min-w-0 flex-1">
+                                <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{new Date(task.date).toLocaleDateString('ru-RU')}</span>
+                                <span className="text-sm font-semibold text-brand-dark dark:text-white truncate">{task.name}</span>
+                              </div>
+
+                              <div className="flex items-center space-x-3">
+                                {diff !== null && (
+                                  <div className={`flex items-center px-2 py-1 rounded-lg text-xs font-semibold ${
+                                    diff > 0 ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
+                                    diff < 0 ? 'bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400' :
+                                    'bg-gray-50 dark:bg-slate-600/50 text-gray-400 dark:text-slate-400'
+                                  }`}>
+                                    {diff > 0 && <ArrowUp size={12} className="mr-1"/>}
+                                    {diff < 0 && <ArrowDown size={12} className="mr-1"/>}
+                                    {diff === 0 && <Minus size={12} className="mr-1"/>}
+                                    {Math.abs(diff)}
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-baseline">
+                                  <span className="text-lg font-semibold text-brand-dark dark:text-white">{task.score}</span>
+                                  <span className="text-xs text-gray-400 dark:text-slate-500 ml-1">/{task.maxScore}</span>
                                 </div>
+                              </div>
                             </div>
-                        `).join('')}
+                          );
+                        })}
+                      </div>
                     </div>
-                </div>
-            `;
-        }
+                  </>
+                ) : activeTab === TaskType.HOMEWORK ? (
+                  <>
+                    <div className="h-40 w-full mb-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.1)" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="score" 
+                            stroke={activeColor}
+                            strokeWidth={2.5}
+                            dot={{ fill: activeColor, strokeWidth: 0, r: 3 }}
+                            activeDot={{ r: 5, fill: activeColor }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
 
-        /* СОХРАНЕННЫЙ HEATMAP (12 недель с оттенками)
-        function renderHeatmap() {
-            const heatmap = document.getElementById('heatmap');
-            if (!heatmap) return;
-            const allGrades = data.grades.filter(g => g.timestamp);
-            const activityMap = {};
-            allGrades.forEach(g => {
-                const date = new Date(g.timestamp * 1000);
-                const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-                activityMap[key] = (activityMap[key] || 0) + 1;
-            });
-            const today = new Date();
-            const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-            const currentDay = today.getDay();
-            const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
-            const endDate = new Date(today);
-            endDate.setDate(today.getDate() - mondayOffset + 6);
-            const weeks = 16;
-            const startDate = new Date(endDate);
-            startDate.setDate(endDate.getDate() - (weeks * 7) + 1);
-            const monthLabels = [];
-            let lastMonth = -1;
-            let gridHtml = '';
-            for (let w = 0; w < weeks; w++) {
-                let weekHtml = '';
-                for (let d = 0; d < 7; d++) {
-                    const date = new Date(startDate);
-                    date.setDate(startDate.getDate() + w * 7 + d);
-                    if (d === 0 && date.getMonth() !== lastMonth) {
-                        monthLabels.push({ week: w, month: months[date.getMonth()] });
-                        lastMonth = date.getMonth();
-                    }
-                    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-                    const count = activityMap[key] || 0;
-                    const isFuture = date > today;
-                    let color = 'bg-white/[0.04]';
-                    if (!isFuture) {
-                        if (count === 1) color = 'bg-[#8fa7b3]/25';
-                        else if (count === 2) color = 'bg-[#8fa7b3]/45';
-                        else if (count === 3) color = 'bg-[#8fa7b3]/65';
-                        else if (count >= 4) color = 'bg-[#8fa7b3]';
-                    }
-                    weekHtml += `<div class="w-full aspect-square rounded-[3px] ${color}"></div>`;
-                }
-                gridHtml += `<div class="flex flex-col gap-[3px]">${weekHtml}</div>`;
-            }
-            let monthHtml = '<div class="flex mb-2 text-[10px] text-white/25">';
-            let prevWeek = 0;
-            monthLabels.forEach((m, i) => {
-                const gap = m.week - prevWeek;
-                if (i === 0 && m.week > 0) monthHtml += `<div style="flex: ${m.week}"></div>`;
-                else if (gap > 0 && i > 0) monthHtml += `<div style="flex: ${gap}"></div>`;
-                monthHtml += `<div style="flex: ${i === monthLabels.length - 1 ? weeks - m.week : 0}" class="shrink-0">${m.month}</div>`;
-                prevWeek = m.week;
-            });
-            monthHtml += '</div>';
-            heatmap.innerHTML = `${monthHtml}<div class="grid gap-[3px]" style="grid-template-columns: repeat(${weeks}, 1fr);">${gridHtml}</div>`;
-        }
-        */
-
-        function renderCalendar() {
-            const calendar = document.getElementById('calendar');
-            if (!calendar) return;
-            
-            const allGrades = data.grades.filter(g => g.timestamp);
-            const activityMap = {};
-            allGrades.forEach(g => {
-                const date = new Date(g.timestamp * 1000);
-                const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-                if (!activityMap[key]) activityMap[key] = [];
-                activityMap[key].push(g);
-            });
-            
-            // Сохраняем для onclick
-            window.calendarData = activityMap;
-            
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-            const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-            
-            const firstDay = new Date(year, month, 1);
-            const startDay = (firstDay.getDay() + 6) % 7;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            let html = `
-                <div class="text-[10px] text-white/25 text-center mb-2">${monthNames[month]}</div>
-                <div class="grid grid-cols-7 gap-[3px] mb-1">
-                    ${dayNames.map(d => `<div class="text-[8px] text-white/15 text-center">${d}</div>`).join('')}
-                </div>
-                <div class="grid grid-cols-7 gap-[3px]">
-            `;
-            
-            for (let i = 0; i < startDay; i++) {
-                html += `<div class="aspect-square"></div>`;
-            }
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const key = `${year}-${month}-${day}`;
-                const hasActivity = activityMap[key];
-                const isToday = day === today.getDate();
-                const isFuture = date > today;
-                
-                let classes = 'aspect-square rounded flex items-center justify-center text-[9px] transition-transform ';
-                if (hasActivity) {
-                    classes += 'bg-[#8fa7b3]/50 text-white/80 cursor-pointer active:scale-90';
-                    html += `<div class="${classes}" onclick="showDayWorks('${key}')">${day}</div>`;
-                } else {
-                    if (isToday) {
-                        classes += 'bg-white/8 text-white/60';
-                    } else if (isFuture) {
-                        classes += 'bg-white/[0.02] text-white/10';
-                    } else {
-                        classes += 'bg-white/[0.03] text-white/20';
-                    }
-                    html += `<div class="${classes}">${day}</div>`;
-                }
-            }
-            
-            html += '</div>';
-            calendar.innerHTML = html;
-        }
-        
-        function showDayWorks(key) {
-            const works = window.calendarData[key];
-            if (!works || !works.length) return;
-            
-            // Если одна работа - сразу детали
-            if (works.length === 1) {
-                showDetail(works[0].id);
-                return;
-            }
-            
-            // Несколько работ - список
-            const m = document.createElement('div');
-            m.className = 'fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm opacity-0 transition-opacity duration-200';
-            m.onclick = e => { if (e.target === m) closeModal(m); };
-            
-            const [y, mon, d] = key.split('-');
-            const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-            const dateStr = `${d} ${months[parseInt(mon)]}`;
-            
-            m.innerHTML = `
-                <div class="glass w-full max-w-md rounded-t-3xl p-6 pb-10 translate-y-full transition-transform duration-300 ease-out">
-                    <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5"></div>
-                    <div class="text-lg font-semibold mb-1">${dateStr}</div>
-                    <div class="text-xs text-white/30 mb-4">${works.length} работы</div>
-                    <div class="space-y-2 max-h-[50vh] overflow-y-auto">
-                        ${works.map(w => `
-                            <div class="p-3 rounded-xl bg-white/5 cursor-pointer active:scale-[0.98] transition-transform" onclick="closeModal(this.closest('.fixed')); setTimeout(() => showDetail(${w.id}), 100);">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex-1 min-w-0 pr-3">
-                                        <div class="text-sm truncate">${w.name}</div>
-                                        <div class="text-[10px] text-white/30 mt-0.5">${{essay:'Эссе',project:'Проект',test:'Пробник',practice:'ДЗ'}[w.type]}</div>
-                                    </div>
-                                    <div class="text-base font-medium text-[#a8c7b5]">${w.score}${w.type === 'project' ? `<span class="text-white/25 text-sm">/50</span>` : w.max ? `<span class="text-white/25 text-sm">/${w.max}</span>` : ''}</div>
-                                </div>
+                    <div className="overflow-y-auto no-scrollbar flex-grow">
+                      <h3 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase mb-2">Все работы</h3>
+                      <div className="space-y-0">
+                        {[...filteredTasks].reverse().map((task, idx, arr) => (
+                          <div 
+                            key={task.id} 
+                            onClick={() => setSelectedTask(task)}
+                            className={`flex justify-between items-center py-2.5 px-2 -mx-2 cursor-pointer hover:bg-white/50 dark:hover:bg-slate-700/30 transition-colors ${
+                              idx < arr.length - 1 ? 'border-b border-gray-200/50 dark:border-slate-600/30' : ''
+                            }`}
+                          >
+                            <div className="overflow-hidden flex-1 min-w-0">
+                              <p className="font-semibold text-brand-dark dark:text-white text-sm truncate pr-4">{task.name}</p>
+                              <p className="text-xs text-gray-400 dark:text-slate-500">{new Date(task.date).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}</p>
                             </div>
-                        `).join('')}
+                            <div className="flex items-baseline">
+                              <span className="font-semibold text-brand-dark dark:text-white">{task.score}</span>
+                              <span className="text-xs text-gray-400 dark:text-slate-500 ml-0.5">/{task.maxScore}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                </div>
-            `;
-            
-            document.body.appendChild(m);
-            requestAnimationFrame(() => {
-                m.classList.remove('opacity-0');
-                m.querySelector('.glass').classList.remove('translate-y-full');
-            });
-        }
-
-        function toggleDropdown() {
-            const dropdown = document.getElementById('courseDropdown');
-            const arrow = document.getElementById('dropdownArrow');
-            const isOpen = !dropdown.classList.contains('opacity-0');
-            
-            if (isOpen) {
-                dropdown.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-8px]');
-                arrow.style.transform = '';
-            } else {
-                dropdown.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-8px]');
-                arrow.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        function selectCourse(id) {
-            if (id === currentCourse) {
-                toggleDropdown();
-                return;
-            }
-            currentCourse = id;
-            toggleDropdown();
-            render();
-            setTimeout(() => { initCharts(); renderCalendar(); }, 250);
-        }
-
-        function showDetail(id) {
-            const w = data.grades.find(g => g.id === id);
-            if (!w) return;
-            
-            const m = document.createElement('div');
-            m.className = 'fixed inset-0 z-[100] flex items-end justify-center bg-black/50 backdrop-blur-sm opacity-0 transition-opacity duration-200';
-            m.onclick = e => { if (e.target === m) closeModal(m); };
-            
-            m.innerHTML = `
-                <div class="glass w-full max-w-md rounded-t-3xl p-6 pb-10 translate-y-full transition-transform duration-300 ease-out">
-                    <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
-                    <div class="flex justify-between items-start mb-5">
-                        <div class="flex-1 pr-4">
-                            <h2 class="text-xl font-semibold">${w.name}</h2>
-                            <p class="text-sm text-white/40 mt-1">${data.courses.find(c=>c.id===w.courseId).name}</p>
-                        </div>
-                        <div class="text-3xl font-semibold ${w.score ? 'text-[#a8c7b5]' : 'text-white/20'}">${w.score ?? '—'}${w.type === 'project' ? `<span class="text-lg text-white/30">/50</span>` : w.max ? `<span class="text-lg text-white/30">/${w.max}</span>` : ''}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-40 w-full mb-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData} barSize={24}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.1)" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} />
+                          <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
+                          <Bar dataKey="score" radius={[4, 4, 4, 4]} onClick={(d) => setSelectedTask(d.fullTask)} className="cursor-pointer">
+                            {chartData.map((_, i) => <Cell key={i} fill={activeColor} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
-                    ${w.comment ? `
-                        <div class="mb-5">
-                            <div class="text-[11px] text-white/30 uppercase mb-2">Комментарий</div>
-                            <div class="p-4 rounded-xl bg-white/5 text-sm leading-relaxed">${w.comment}</div>
-                        </div>
-                    ` : ''}
-                    <div class="flex gap-3 mb-4">
-                        <div class="flex-1 p-4 rounded-xl bg-white/5">
-                            <div class="text-[10px] text-white/30 uppercase">Тип</div>
-                            <div class="text-sm mt-1">${{essay:'Эссе',project:'Проект',test:'Пробник',practice:'Практикум'}[w.type]}</div>
-                        </div>
-                        <div class="flex-1 p-4 rounded-xl bg-white/5">
-                            <div class="text-[10px] text-white/30 uppercase">Дата</div>
-                            <div class="text-sm mt-1">${w.date || 'Ожидает'}</div>
-                        </div>
+
+                    <div className="overflow-y-auto no-scrollbar flex-grow">
+                      <h3 className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase mb-2">Все работы</h3>
+                      <div className="space-y-0">
+                        {[...filteredTasks].reverse().map((task, idx, arr) => (
+                          <div 
+                            key={task.id} 
+                            onClick={() => setSelectedTask(task)}
+                            className={`flex justify-between items-center py-2.5 px-2 -mx-2 cursor-pointer hover:bg-white/50 dark:hover:bg-slate-700/30 transition-colors ${
+                              idx < arr.length - 1 ? 'border-b border-gray-200/50 dark:border-slate-600/30' : ''
+                            }`}
+                          >
+                            <div className="overflow-hidden flex-1 min-w-0">
+                              <p className="font-semibold text-brand-dark dark:text-white text-sm truncate pr-4">{task.name}</p>
+                              <p className="text-xs text-gray-400 dark:text-slate-500">{new Date(task.date).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}</p>
+                            </div>
+                            <div className="flex items-baseline">
+                              <span className="font-semibold text-brand-dark dark:text-white">{task.score}</span>
+                              <span className="text-xs text-gray-400 dark:text-slate-500 ml-0.5">/{task.maxScore}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                </div>
-            `;
+                  </>
+                )}
+              </>
+            )}
+          </GlassCard>
+
+          {selectedTask && <TaskModal task={selectedTask} courseName={currentCourse.name} onClose={() => setSelectedTask(null)} />}
+        </div>
+      );
+    };
+
+    const History = ({ currentCourse, tasks }) => {
+      const [selectedTask, setSelectedTask] = useState(null);
+
+      const courseTasks = tasks
+        .filter(t => t.courseId === currentCourse.id)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      return (
+        <div className="pb-24">
+          
+          <div className="mb-6 px-1">
+            <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Курс</span>
+            <h1 className="text-2xl font-semibold text-brand-dark dark:text-white leading-tight">{currentCourse.name}</h1>
+          </div>
+
+          <div className="space-y-3">
+            {courseTasks.length === 0 ? (
+              <div className="text-center py-20 text-gray-400 dark:text-slate-500">
+                <p>Пока нет проверенных работ</p>
+              </div>
+            ) : (
+              courseTasks.map((task) => (
+                <GlassCard 
+                  key={task.id} 
+                  interactive 
+                  onClick={() => setSelectedTask(task)}
+                  className="p-5 flex justify-between items-center hover:scale-[1.02] transition-transform duration-300"
+                >
+                  <div className="flex-1 min-w-0 pr-4">
+                    <span className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+                      {TASK_TYPE_LABELS[task.type]}
+                    </span>
+                    <h4 className="font-semibold text-brand-dark dark:text-white truncate text-base">{task.name}</h4>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                      {new Date(task.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                    </p>
+                  </div>
+
+                  <div className="flex items-baseline">
+                    <span className="text-lg font-semibold text-brand-dark dark:text-white">{task.score}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500 font-medium ml-0.5">/{task.maxScore}</span>
+                  </div>
+                </GlassCard>
+              ))
+            )}
+          </div>
+
+          {selectedTask && <TaskModal task={selectedTask} courseName={currentCourse.name} onClose={() => setSelectedTask(null)} />}
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [currentPage, setCurrentPage] = useState(Page.HOME);
+      const [currentCourse, setCurrentCourse] = useState(CURRENT_STUDENT.courses[0]);
+      const [isDarkMode, setIsDarkMode] = useState(false);
+
+      return (
+        <div className={isDarkMode ? 'dark' : ''}>
+          <div className="min-h-screen bg-gradient-to-tl from-purple-50/40 via-white to-purple-100/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-brand-text dark:text-slate-200 transition-colors duration-500">
             
-            document.body.appendChild(m);
-            requestAnimationFrame(() => {
-                m.classList.remove('opacity-0');
-                m.querySelector('.glass').classList.remove('translate-y-full');
-            });
-        }
+            <div className="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-200/40 dark:bg-purple-900/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="fixed bottom-[-10%] left-[-20%] w-[600px] h-[600px] bg-purple-100/50 dark:bg-purple-800/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="fixed top-1/2 left-1/2 w-[400px] h-[400px] bg-purple-100/20 dark:bg-purple-800/5 rounded-full blur-[150px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
 
-        function closeModal(m) {
-            m.classList.add('opacity-0');
-            m.querySelector('.glass').classList.add('translate-y-full');
-            setTimeout(() => m.remove(), 300);
-        }
+            <main className="relative z-10 max-w-md mx-auto min-h-screen p-5 pt-8">
+              {currentPage === Page.HOME && (
+                <Home 
+                  student={CURRENT_STUDENT} 
+                  currentCourse={currentCourse} 
+                  tasks={MOCK_TASKS} 
+                  setCourse={setCurrentCourse}
+                  isDarkMode={isDarkMode}
+                  toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+                />
+              )}
+              {currentPage === Page.STATS && <Stats currentCourse={currentCourse} tasks={MOCK_TASKS} />}
+              {currentPage === Page.HISTORY && <History currentCourse={currentCourse} tasks={MOCK_TASKS} />}
+            </main>
 
-        // Charts
-        function makeChart(ctx, items, color, maxVal, minVal) {
-            const sorted = sortByDate(items);
-            return new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: sorted.map(i => i.date),
-                    datasets: [{
-                        data: sorted.map(i => i.score),
-                        rawData: sorted,
-                        borderColor: color,
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0.3,
-                        pointRadius: 3,
-                        pointBackgroundColor: color,
-                        pointBorderColor: color,
-                        pointBorderWidth: 0,
-                        pointHoverRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: { 
-                        legend: { display: false }, 
-                        tooltip: { 
-                            enabled: true,
-                            backgroundColor: 'rgba(12, 16, 23, 0.95)',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            padding: 10,
-                            titleFont: { size: 11, weight: '400' },
-                            titleColor: 'rgba(255,255,255,0.4)',
-                            bodyFont: { size: 12, weight: '500' },
-                            bodyColor: '#fff',
-                            displayColors: false,
-                            callbacks: {
-                                title: (ctx) => sorted[ctx[0].dataIndex]?.date || '',
-                                label: (ctx) => {
-                                    const item = sorted[ctx.dataIndex];
-                                    return item?.name?.replace(/^(Эссе|Пробник|ДЗ):\s*/, '') || '';
-                                },
-                                afterLabel: (ctx) => {
-                                    const item = sorted[ctx.dataIndex];
-                                    return item?.max ? `${ctx.raw}/${item.max}` : `${ctx.raw}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            display: true,
-                            min: minVal, 
-                            max: maxVal,
-                            grid: { color: 'rgba(255,255,255,0.03)' },
-                            ticks: { 
-                                color: 'rgba(255,255,255,0.2)', 
-                                font: { size: 9 },
-                                stepSize: Math.round((maxVal - minVal) / 2)
-                            },
-                            border: { display: false }
-                        },
-                        x: { 
-                            display: true,
-                            grid: { display: false },
-                            ticks: { 
-                                color: 'rgba(255,255,255,0.2)', 
-                                font: { size: 9 },
-                                maxRotation: 0
-                            },
-                            border: { display: false }
-                        }
-                    }
-                }
-            });
-        }
+            <BottomNav activePage={currentPage} setPage={setCurrentPage} />
+          </div>
+        </div>
+      );
+    };
 
-        function sortByDate(arr) {
-            return [...arr].sort((a, b) => a.timestamp - b.timestamp);
-        }
-
-        function initCharts() {
-            const essays = sortByDate(byType('essay'));
-            const projects = sortByDate(byType('project'));
-            const tests = sortByDate(byType('test'));
-            const practices = sortByDate(byType('practice'));
-
-            if (currentTab === 'main') {
-                // Главная использует сегментированные прогресс-бары, графиков нет
-                return;
-            } else if (currentTab === 'stats') {
-                // ДЗ - линейный (нормализуем к процентам из-за переменного максимума)
-                if (practices.length) {
-                    const normalizedPractices = practices.map(p => ({
-                        ...p,
-                        normalizedScore: p.max ? (p.score / p.max) * 100 : p.score
-                    }));
-                    const sorted = sortByDate(normalizedPractices);
-                    const maxPercent = Math.max(...normalizedPractices.map(p => p.normalizedScore));
-                    const minPercent = Math.min(...normalizedPractices.map(p => p.normalizedScore));
-                    
-                    new Chart(document.getElementById('practiceChart'), {
-                        type: 'line',
-                        data: {
-                            labels: sorted.map(i => i.date),
-                            datasets: [{
-                                data: sorted.map(i => i.normalizedScore),
-                                rawData: sorted,
-                                borderColor: '#8fb3a0',
-                                backgroundColor: 'transparent',
-                                borderWidth: 2,
-                                fill: false,
-                                tension: 0.3,
-                                pointRadius: 3,
-                                pointBackgroundColor: '#8fb3a0',
-                                pointBorderColor: '#8fb3a0',
-                                pointBorderWidth: 0,
-                                pointHoverRadius: 5
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            interaction: { intersect: false, mode: 'index' },
-                            plugins: { 
-                                legend: { display: false }, 
-                                tooltip: { 
-                                    enabled: true,
-                                    backgroundColor: 'rgba(12, 16, 23, 0.95)',
-                                    borderColor: 'rgba(255,255,255,0.1)',
-                                    borderWidth: 1,
-                                    cornerRadius: 8,
-                                    padding: 10,
-                                    titleFont: { size: 11, weight: '400' },
-                                    titleColor: 'rgba(255,255,255,0.4)',
-                                    bodyFont: { size: 12, weight: '500' },
-                                    bodyColor: '#fff',
-                                    displayColors: false,
-                                    callbacks: {
-                                        title: (ctx) => sorted[ctx[0].dataIndex]?.date || '',
-                                        label: (ctx) => {
-                                            const item = sorted[ctx.dataIndex];
-                                            return item?.name?.replace(/^ДЗ:\s*/, '') || '';
-                                        },
-                                        afterLabel: (ctx) => {
-                                            const item = sorted[ctx.dataIndex];
-                                            return item?.max ? `${item.score}/${item.max}` : `${item.score}`;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: { 
-                                    display: true,
-                                    min: Math.max(0, Math.floor(minPercent / 10) * 10 - 10), 
-                                    max: Math.ceil(maxPercent / 10) * 10 + 10,
-                                    grid: { color: 'rgba(255,255,255,0.03)' },
-                                    ticks: { 
-                                        color: 'rgba(255,255,255,0.2)', 
-                                        font: { size: 9 },
-                                        stepSize: 25,
-                                        callback: v => v + '%'
-                                    },
-                                    border: { display: false }
-                                },
-                                x: { 
-                                    display: true,
-                                    grid: { display: false },
-                                    ticks: { 
-                                        color: 'rgba(255,255,255,0.2)', 
-                                        font: { size: 9 },
-                                        maxRotation: 0
-                                    },
-                                    border: { display: false }
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Эссе - столбчатая диаграмма (0-50)
-                if (essays.length) {
-                    const sortedEssays = sortByDate(essays);
-                    
-                    new Chart(document.getElementById('essayChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: sortedEssays.map((e, i) => `${i + 1}`),
-                            datasets: [{
-                                data: sortedEssays.map(e => e.score),
-                                backgroundColor: '#8fa7b3',
-                                borderRadius: 4,
-                                borderSkipped: false,
-                                barThickness: 12,
-                                rawData: sortedEssays
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { 
-                                legend: { display: false },
-                                tooltip: {
-                                    enabled: true,
-                                    backgroundColor: 'rgba(12, 16, 23, 0.95)',
-                                    borderColor: 'rgba(255,255,255,0.1)',
-                                    borderWidth: 1,
-                                    cornerRadius: 8,
-                                    padding: 10,
-                                    titleFont: { size: 11, weight: '400' },
-                                    titleColor: 'rgba(255,255,255,0.4)',
-                                    bodyFont: { size: 12, weight: '500' },
-                                    bodyColor: '#fff',
-                                    displayColors: false,
-                                    callbacks: {
-                                        title: (ctx) => sortedEssays[ctx[0].dataIndex]?.date || '',
-                                        label: (ctx) => sortedEssays[ctx.dataIndex]?.name?.replace(/^Эссе:\s*/, '') || '',
-                                        afterLabel: (ctx) => `${ctx.raw}/50`
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: { 
-                                    display: true, 
-                                    min: 0, 
-                                    max: 50,
-                                    grid: { color: 'rgba(255,255,255,0.03)' },
-                                    ticks: { 
-                                        color: 'rgba(255,255,255,0.2)', 
-                                        font: { size: 9 },
-                                        stepSize: 12.5
-                                    },
-                                    border: { display: false }
-                                },
-                                x: { 
-                                    display: false,
-                                    grid: { display: false },
-                                    border: { display: false }
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Проекты - столбчатая диаграмма (0-50)
-                if (projects.length) {
-                    const sortedProjects = sortByDate(projects);
-                    
-                    new Chart(document.getElementById('projectChart'), {
-                        type: 'bar',
-                        data: {
-                            labels: sortedProjects.map((p, i) => `${i + 1}`),
-                            datasets: [{
-                                data: sortedProjects.map(p => p.score),
-                                backgroundColor: '#b3a08f',
-                                borderRadius: 4,
-                                borderSkipped: false,
-                                barThickness: 12,
-                                rawData: sortedProjects
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { 
-                                legend: { display: false },
-                                tooltip: {
-                                    enabled: true,
-                                    backgroundColor: 'rgba(12, 16, 23, 0.95)',
-                                    borderColor: 'rgba(255,255,255,0.1)',
-                                    borderWidth: 1,
-                                    cornerRadius: 8,
-                                    padding: 10,
-                                    titleFont: { size: 11, weight: '400' },
-                                    titleColor: 'rgba(255,255,255,0.4)',
-                                    bodyFont: { size: 12, weight: '500' },
-                                    bodyColor: '#fff',
-                                    displayColors: false,
-                                    callbacks: {
-                                        title: (ctx) => sortedProjects[ctx[0].dataIndex]?.date || '',
-                                        label: (ctx) => sortedProjects[ctx.dataIndex]?.name?.replace(/^Проект:\s*/, '') || '',
-                                        afterLabel: (ctx) => `${ctx.raw}/50`
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: { 
-                                    display: true, 
-                                    min: 0, 
-                                    max: 50,
-                                    grid: { color: 'rgba(255,255,255,0.03)' },
-                                    ticks: { 
-                                        color: 'rgba(255,255,255,0.2)', 
-                                        font: { size: 9 },
-                                        stepSize: 12.5
-                                    },
-                                    border: { display: false }
-                                },
-                                x: { 
-                                    display: false,
-                                    grid: { display: false },
-                                    border: { display: false }
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        // Navigation
-        // Навигация с анимацией индикатора
-        const navItems = document.querySelectorAll('.nav-item');
-        const indicator = document.getElementById('navIndicator');
-        
-        function updateIndicator(index, animate = true) {
-            const btn = navItems[index];
-            if (!btn || !indicator) return;
-            
-            const btnWidth = btn.offsetWidth;
-            const translateX = index * btnWidth;
-            
-            indicator.style.width = btnWidth + 'px';
-            indicator.style.transform = `translateX(${translateX}px)`;
-        }
-        
-        // Инициализация индикатора
-        setTimeout(() => updateIndicator(1, false), 10);
-        
-        navItems.forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.dataset.tab === currentTab) return;
-                currentTab = this.dataset.tab;
-                const index = parseInt(this.dataset.index);
-                
-                navItems.forEach(b => {
-                    b.classList.remove('active');
-                    b.querySelector('svg').classList.remove('opacity-90');
-                    b.querySelector('svg').classList.add('opacity-30');
-                });
-                this.classList.add('active');
-                this.querySelector('svg').classList.remove('opacity-30');
-                this.querySelector('svg').classList.add('opacity-90');
-                
-                updateIndicator(index);
-                
-                render();
-                setTimeout(() => { initCharts(); renderCalendar(); }, 250);
-            });
-        });
-
-        render();
-        setTimeout(() => { initCharts(); renderCalendar(); }, 50);
-    </script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
